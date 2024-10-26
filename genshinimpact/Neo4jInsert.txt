@@ -1,0 +1,99 @@
+LOAD CSV WITH HEADERS FROM 'file:///GenshinImpact/properties/characters.csv' AS row
+WITH row.CharacterID AS ID, row.name AS name, row.title AS title, row.gender AS gender, row.rarity AS rarity, row.pool AS pool, row.constellation AS constellation, row.specialCuisine AS specialCuisine, row.equipDate AS equipDate, row.tag AS tag, row.intro AS intro
+MERGE (ch:Character {ID: ID})
+ SET ch.name = name,ch.title = title,ch.gender = gender,ch.rarity = rarity,ch.pool = pool,ch.constellation = constellation,ch.specialCuisine = specialCuisine,ch.equipDate = equipDate,ch.tag = tag,ch.intro = intro
+RETURN count(ch);
+
+LOAD CSV WITH HEADERS FROM 'file:///GenshinImpact/properties/countries.csv' AS row
+WITH row.CountryID AS ID, row.name AS name, row.eng_name AS eng_name, row.army AS army, row.desc AS desc, row.background AS background
+MERGE (c:Country {ID: ID})
+ SET c.name = name,c.eng_name = eng_name,c.army = army,c.desc = desc,c.background = background
+RETURN count(c);
+
+LOAD CSV WITH HEADERS FROM 'file:///GenshinImpact/properties/materials.csv' AS row
+WITH row.MaterialID AS ID, row.name AS name, row.rarity AS rarity, row.type AS type, row.source AS source, row.intro AS intro, row.relatedFurnish AS relatedFurnish, row.relatedFood AS relatedFood
+MERGE (m:Material {ID: ID})
+ SET m.name = name,m.rarity = rarity,m.type = type,m.source = source,m.intro = intro,m.relatedFurnish = relatedFurnish,m.relatedFood = relatedFood
+RETURN count(m);
+
+LOAD CSV WITH HEADERS FROM 'file:///GenshinImpact/properties/weapons.csv' AS row
+WITH row.WeaponID AS ID, row.name AS name, row.rarity AS rarity, row.baseProperty1 AS baseProperty1, row.baseProperty2 AS baseProperty2, row.intro AS intro, row.skillname AS skillname, row.skillDesc AS skillDesc, row.obtain AS obtain, row.tag AS tag
+MERGE (w:Weapon {ID: ID})
+ SET w.name = name,w.rarity = rarity,w.baseProperty1 = baseProperty1,w.baseProperty2 = baseProperty2,w.intro = intro,w.skillname = skillname,w.skillDesc = skillDesc,w.obtain = obtain,w.tag = tag
+RETURN count(w);
+
+LOAD CSV WITH HEADERS FROM 'file:///GenshinImpact/properties/element.csv' AS row
+WITH row.ElementID AS ID, row.name AS name, row.reaction AS reaction, row.resonance AS resonance
+MERGE (e:Element {ID: ID})
+ SET e.name = name,e.reaction = reaction,e.resonance = resonance
+RETURN count(e);
+
+LOAD CSV WITH HEADERS FROM 'file:///GenshinImpact/properties/weapontypes.csv' AS row
+WITH row.WeapontypeID AS ID, row.typeName AS typeName, row.range AS range, row.frequency AS frequency, row.accumulate AS accumulate
+MERGE (wt:WeaponType {ID: ID})
+ SET wt.typeName = typeName,wt.range = range,wt.frequency = frequency,wt.accumulate = accumulate
+RETURN count(wt);
+
+:auto USING PERIODIC COMMIT 500
+LOAD CSV WITH HEADERS FROM 'file:///GenshinImpact/relations/character2country.csv' AS row
+WITH row.END_ID AS END_ID, row.type AS type, row.START_ID AS START_ID
+MATCH (ch:Character {ID: START_ID})
+MATCH (c:Country {ID: END_ID})
+MERGE (ch)-[rel:来自]->(c)
+RETURN count(rel);
+
+:auto USING PERIODIC COMMIT 500
+LOAD CSV WITH HEADERS FROM 'file:///GenshinImpact/relations/character2element.csv' AS row
+WITH row.END_ID AS END_ID, row.type AS type, row.START_ID AS START_ID
+MATCH (ch:Character {ID: START_ID})
+MATCH (e:Element {ID: END_ID})
+MERGE (ch)-[rel:神之眼]->(e)
+RETURN count(rel);
+
+:auto USING PERIODIC COMMIT 500
+LOAD CSV WITH HEADERS FROM 'file:///GenshinImpact/relations/character2material.csv' AS row
+WITH row.END_ID AS END_ID, row.type AS type, row.START_ID AS START_ID
+MATCH (ch:Character {ID: START_ID})
+MATCH (m:Material {ID: END_ID})
+MERGE (ch)-[rel:需求]->(m)
+RETURN count(rel);
+
+:auto USING PERIODIC COMMIT 500
+LOAD CSV WITH HEADERS FROM 'file:///GenshinImpact/relations/character2weapontype.csv' AS row
+WITH row.END_ID AS END_ID, row.type AS type, row.START_ID AS START_ID
+MATCH (ch:Character {ID: START_ID})
+MATCH (wt:WeaponType {ID: END_ID})
+MERGE (ch)-[rel:使用]->(wt)
+RETURN count(rel);
+
+:auto USING PERIODIC COMMIT 500
+LOAD CSV WITH HEADERS FROM 'file:///GenshinImpact/relations/element2element.csv' AS row
+WITH row.END_ID AS END_ID, row.type AS type, row.START_ID AS START_ID
+MATCH (e1:Element {ID: START_ID})
+MATCH (e2:Element {ID: END_ID})
+MERGE (e1)-[rel:反应{name:type}]->(e2)
+RETURN count(rel);
+
+:auto USING PERIODIC COMMIT 500
+LOAD CSV WITH HEADERS FROM 'file:///GenshinImpact/relations/material2material.csv' AS row
+WITH row.END_ID AS END_ID, row.type AS type, row.START_ID AS START_ID
+MATCH (m1:Material {ID: START_ID})
+MATCH (m2:Material {ID: END_ID})
+MERGE (m1)-[rel:相似素材{name:type}]->(m2)
+RETURN count(rel);
+
+:auto USING PERIODIC COMMIT 500
+LOAD CSV WITH HEADERS FROM 'file:///GenshinImpact/relations/weapon2material.csv' AS row
+WITH row.END_ID AS END_ID, row.type AS type, row.START_ID AS START_ID
+MATCH (w:Weapon {ID: START_ID})
+MATCH (m:Material {ID: END_ID})
+MERGE (w)-[rel:需求]->(m)
+RETURN count(rel);
+
+:auto USING PERIODIC COMMIT 500
+LOAD CSV WITH HEADERS FROM 'file:///GenshinImpact/relations/weapon2weapontype.csv' AS row
+WITH row.END_ID AS END_ID, row.type AS type, row.START_ID AS START_ID
+MATCH (w:Weapon {ID: START_ID})
+MATCH (wt:WeaponType {ID: END_ID})
+MERGE (w)-[rel:属于]->(wt)
+RETURN count(rel);
