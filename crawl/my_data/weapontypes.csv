@@ -1,0 +1,6 @@
+﻿WeapontypeID,typeName,range,frequency,accumulate,LABEL
+wt0,单手剑,近战,快,重击,WeaponType
+wt1,双手剑,近战,慢,连击,WeaponType
+wt2,长柄武器,近战,中,重击,WeaponType
+wt3,法器,远程,中,重击,WeaponType
+wt4,弓,远程,快,瞄准,WeaponType
