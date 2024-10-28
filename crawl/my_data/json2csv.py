@@ -184,8 +184,8 @@ print('Element Finish!')
 
 # 处理material.json
 #剩余 用处\相关角色\相关武器\同类素材\系列素材
-material_attr = ['name', 'rarity', 'type', 'source', 'intro', 'relatedFurnish', 'relatedFood','relatedWeapon']
-material_attr_ = ['材料名称', '稀有度', '类型', '来源', '描述', '相关摆设','相关食物','相关武器']
+material_attr = ['name', 'rarity', 'type', 'source', 'intro', 'relatedFood','relatedWeapon']
+material_attr_ = ['材料名称', '稀有度', '类型', '来源', '描述','相关食物','相关武器']
 begin = "MaterialID"
 end = "LABEL"
 with open('D:\Git\KG_project\crawl\my_data\materials.csv', 'w', encoding='utf-8-sig', newline="") as f:
