@@ -30,15 +30,20 @@ def get_text_dict(d):
 class GenshinImpactSpider(Spider):
     name = 'genshin_impact_spider'
     allowed_domains = ['wiki.biligame.com']
-    start_urls = ['http://wiki.biligame.com/ys/']
+    # start_urls = ['http://wiki.biligame.com/ys/']
     # start_urls = ['https://wiki.biligame.com/ys/%E6%9D%90%E6%96%99%E5%9B%BE%E9%89%B4']#材料
-
+    start_urls = ['http://wiki.biligame.com/ys/%E8%A7%92%E8%89%B2%E8%AF%AD%E9%9F%B3']#语音
     def parse(self, response, **kwargs):
+        # 人物语音
+        linkextractor = LinkExtractor(restrict_xpaths = '//div[@class="home-box-tag-1"]//a')
+        for link in linkextractor.extract_links(response):
+            logging.info(f"从 {response.url} 提取链接: {link.url}")
+            yield Request(link.url, callback = self.parse_relation ,errback=self.handle_error)
+        
         '''人物,武器
         linkextractors = [
             # (LinkExtractor(restrict_xpaths = '//a[@title="角色图鉴"]'), 'parse_character'),
             # (LinkExtractor(restrict_xpaths = '//a[@title="武器图鉴"]'), 'parse_weapon'),
-            (LinkExtractor(restrict_xpaths = '//a[@title="材料一览"]'), 'parse_material'),
         ]
         # link=start_urls
         # callback='parse_material'
@@ -47,10 +52,12 @@ class GenshinImpactSpider(Spider):
         #         logging.info(f"正在跟随链接: {link.url}")#
         #         yield Request(link.url, callback = self.parse_url, cb_kwargs = {'cb': callback},errback=self.handle_error)
         '''
+        '''材料
         specific_link = response.xpath('//a[@title="材料一览"]/@href').get()
         if specific_link:
             # 访问特定链接
             yield response.follow(specific_link, callback=self.parse_next_page) 
+        '''
     def parse_next_page(self, response):
         linkextractors = [
             (LinkExtractor(restrict_xpaths = '//a[@title="材料图鉴"]'), 'parse_material'),
@@ -59,6 +66,25 @@ class GenshinImpactSpider(Spider):
             for link in lx.extract_links(response):
                 logging.info(f"正在跟随链接: {link.url}")#
                 yield Request(link.url, callback = self.parse_url, cb_kwargs = {'cb': callback},errback=self.handle_error)
+    def parse_relation(self, response):
+        def parse_general_table(general_table, character):
+            for child in [c for c in general_table.children if not isinstance(c, bs4.element.NavigableString)]:
+                relation['语音'].append(child.div.text.strip())
+        print('--------')
+        relation = {}
+        relation['语音']=[]
+        soup = BeautifulSoup(response.text, 'lxml')
+        element = response.xpath('//*[@id="firstHeading"]/text()').get()
+        relation['character']=element.strip()
+        if(element=='旅行者语音'):
+            return None
+        # print(relation['character'])
+        tables = soup.findAll('div', class_ = 'resp-tab-content')
+        parse_general_table(tables[0], relation)
+        if 'character' in relation:
+            return {'type': 'relation', 'data': relation}
+        else:
+            return None
 
     def parse_url(self, response, cb, **kwargs):
         # 材料
@@ -141,24 +167,6 @@ class GenshinImpactSpider(Spider):
                     material[child.th.text.strip()] = child.td.img['alt'].split('.')[0]
                 elif child.th.text.strip() == '图鉴描述':
                     continue
-                # elif child.th.text.strip() == '用处':
-                #     res = []
-                #     cur_res = ''
-                #     for c in child.td.p:
-                #         if isinstance(c, bs4.element.NavigableString):
-                #             cur_res += str(c)
-                #         elif c.name == 'br':
-                #             cur_res = cur_res.strip()
-                #             if cur_res:
-                #                 res.append(cur_res)
-                #             cur_res = ''
-                #         else:
-                #             cur_res += c.text
-                #     if cur_res:
-                #         cur_res = cur_res.strip()
-                #         if cur_res:
-                #             res.append(cur_res)
-                #     material[child.th.text.strip()] = [r.strip() for r in res]
                 elif child.th.text.strip() == '合成':
                     continue
                 else:
