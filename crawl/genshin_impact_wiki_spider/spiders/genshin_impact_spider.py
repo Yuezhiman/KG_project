@@ -68,9 +68,23 @@ class GenshinImpactSpider(Spider):
                 yield Request(link.url, callback = self.parse_url, cb_kwargs = {'cb': callback},errback=self.handle_error)
     def parse_relation(self, response):
         def parse_general_table(general_table, character):
-            for child in [c for c in general_table.children if not isinstance(c, bs4.element.NavigableString)]:
-                relation['语音'].append(child.div.text.strip())
-        print('--------')
+            rows=general_table.findAll('div', class_ = 'visible-md visible-sm visible-lg')
+            for c in rows:
+                a=c.find('div').find('div').text.strip()
+                print('--------')
+                print(a)
+                print('--------')
+                b=c.find('div',class_='voice_text_chs vt_active').text.strip()
+                relation['语音'].append(a+':'+b)
+            # for child in [c for c in general_table.children if not isinstance(c, bs4.element.NavigableString)]:
+                # if child['class']=='visible-md visible-sm visible-lg':
+                #     a=child.div.text.strip()
+# //*[@id="mw-content-text"]/div/div[3]/div[4]/div[1]/div[1]/div/div[1]
+# //*[@id="mw-content-text"]/div/div[3]/div[4]/div[1]/div[3]/div/div[1]
+# //*[@id="mw-content-text"]/div/div[3]/div[4]/div[1]/div[3]/div/div[6]/div[1]
+# //*[@id="mw-content-text"]/div/div[3]/div[4]/div[1]/div[1]/div/div[6]/div[1]
+        # <div class="voice_text_chs vt_active">蒙德城的迪卢克，应约而来。闲聊恕不奉陪，如果你是想做一番大事，我倒有点兴致。</div>
+        # <div class="visible-md visible-sm visible-lg"><div style="margin:2px 0px;width:100%;display: 
         relation = {}
         relation['语音']=[]
         soup = BeautifulSoup(response.text, 'lxml')
@@ -80,6 +94,7 @@ class GenshinImpactSpider(Spider):
             return None
         # print(relation['character'])
         tables = soup.findAll('div', class_ = 'resp-tab-content')
+        # <div class="resp-tab-content" style="display:block;">
         parse_general_table(tables[0], relation)
         if 'character' in relation:
             return {'type': 'relation', 'data': relation}
