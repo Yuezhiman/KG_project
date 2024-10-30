@@ -127,8 +127,8 @@ with open('D:\Git\KG_project\crawl\my_data\element2element.csv', 'w', encoding='
                 #print(data)
                 csv_writer.writerows(data)
 print('element2element.csv finish!')
-
-
+'''
+import re
 """角色与素材"""
 headers = ['END_ID', 'type', 'START_ID']
 with open('D:\Git\KG_project\crawl\my_data\character2material.csv', 'w', encoding='utf-8-sig', newline="") as f:
@@ -136,7 +136,8 @@ with open('D:\Git\KG_project\crawl\my_data\character2material.csv', 'w', encodin
     csv_writer.writerow(headers)
     for chId in results['character'].keys():
         startId = '#'+str(chId)
-        chname = results['character'][chId]['全名/本名']
+        text = results['character'][chId]['全名/本名']
+        chname = re.sub(r'（.*?）', '', text)
         for endId in results['material'].keys():
             item = results['material'][endId]['相关角色']
             if chname in item:
@@ -144,7 +145,7 @@ with open('D:\Git\KG_project\crawl\my_data\character2material.csv', 'w', encodin
                 #print(data)
                 csv_writer.writerows(data)
 print('character2material.csv finish!')
-
+'''
 """武器与素材"""
 headers = ['END_ID', 'type', 'START_ID']
 with open('D:\Git\KG_project\crawl\my_data\weapon2material.csv', 'w', encoding='utf-8-sig', newline="") as f:
@@ -160,6 +161,7 @@ with open('D:\Git\KG_project\crawl\my_data\weapon2material.csv', 'w', encoding='
                 #print(data)
                 csv_writer.writerows(data)
 print('weapon2material.csv finish!')
+'''
 '''
 """素材与素材"""
 headers = ['END_ID', 'type', 'START_ID']
@@ -181,4 +183,5 @@ with open('D:\Git\KG_project\crawl\my_data\material2material.csv', 'w', encoding
             if len(data)>0:
                 csv_writer.writerows(data)
 print('material2material.csv finish!')
+'''
 
