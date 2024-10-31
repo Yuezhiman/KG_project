@@ -1,40 +1,42 @@
-LOAD CSV WITH HEADERS FROM 'file:///GenshinImpact/properties/characters.csv' AS row
+LOAD CSV WITH HEADERS FROM 'file:///graph/characters.csv' AS row
 WITH row.CharacterID AS ID, row.name AS name, row.title AS title, row.gender AS gender, row.rarity AS rarity, row.pool AS pool, row.constellation AS constellation, row.specialCuisine AS specialCuisine, row.equipDate AS equipDate, row.tag AS tag, row.intro AS intro
 MERGE (ch:Character {ID: ID})
  SET ch.name = name,ch.title = title,ch.gender = gender,ch.rarity = rarity,ch.pool = pool,ch.constellation = constellation,ch.specialCuisine = specialCuisine,ch.equipDate = equipDate,ch.tag = tag,ch.intro = intro
 RETURN count(ch);
 
-LOAD CSV WITH HEADERS FROM 'file:///GenshinImpact/properties/countries.csv' AS row
+LOAD CSV WITH HEADERS FROM 'file:///graph/countries.csv' AS row
 WITH row.CountryID AS ID, row.name AS name, row.eng_name AS eng_name, row.army AS army, row.desc AS desc, row.background AS background
 MERGE (c:Country {ID: ID})
  SET c.name = name,c.eng_name = eng_name,c.army = army,c.desc = desc,c.background = background
 RETURN count(c);
 
-LOAD CSV WITH HEADERS FROM 'file:///GenshinImpact/properties/materials.csv' AS row
+LOAD CSV WITH HEADERS FROM 'file:///graph/materials.csv' AS row
 WITH row.MaterialID AS ID, row.name AS name, row.rarity AS rarity, row.type AS type, row.source AS source, row.intro AS intro, row.relatedFurnish AS relatedFurnish, row.relatedFood AS relatedFood
 MERGE (m:Material {ID: ID})
  SET m.name = name,m.rarity = rarity,m.type = type,m.source = source,m.intro = intro,m.relatedFurnish = relatedFurnish,m.relatedFood = relatedFood
 RETURN count(m);
 
-LOAD CSV WITH HEADERS FROM 'file:///GenshinImpact/properties/weapons.csv' AS row
+LOAD CSV WITH HEADERS FROM 'file:///graph/weapons.csv' AS row
 WITH row.WeaponID AS ID, row.name AS name, row.rarity AS rarity, row.baseProperty1 AS baseProperty1, row.baseProperty2 AS baseProperty2, row.intro AS intro, row.skillname AS skillname, row.skillDesc AS skillDesc, row.obtain AS obtain, row.tag AS tag
 MERGE (w:Weapon {ID: ID})
  SET w.name = name,w.rarity = rarity,w.baseProperty1 = baseProperty1,w.baseProperty2 = baseProperty2,w.intro = intro,w.skillname = skillname,w.skillDesc = skillDesc,w.obtain = obtain,w.tag = tag
 RETURN count(w);
 
-LOAD CSV WITH HEADERS FROM 'file:///GenshinImpact/properties/element.csv' AS row
+LOAD CSV WITH HEADERS FROM 'file:///graph/element.csv' AS row
 WITH row.ElementID AS ID, row.name AS name, row.reaction AS reaction, row.resonance AS resonance
 MERGE (e:Element {ID: ID})
  SET e.name = name,e.reaction = reaction,e.resonance = resonance
 RETURN count(e);
 
-LOAD CSV WITH HEADERS FROM 'file:///GenshinImpact/properties/weapontypes.csv' AS row
+LOAD CSV WITH HEADERS FROM 'file:///graph/weapontypes.csv' AS row
 WITH row.WeapontypeID AS ID, row.typeName AS typeName, row.range AS range, row.frequency AS frequency, row.accumulate AS accumulate
 MERGE (wt:WeaponType {ID: ID})
  SET wt.typeName = typeName,wt.range = range,wt.frequency = frequency,wt.accumulate = accumulate
 RETURN count(wt);
 
-LOAD CSV WITH HEADERS FROM 'file:///GenshinImpact/relations/character2country.csv' AS row
+
+
+LOAD CSV WITH HEADERS FROM 'file:///graph/character2country.csv' AS row
 CALL {
     WITH row
     MATCH (ch:Character {ID: row.START_ID})
@@ -45,7 +47,7 @@ CALL {
 RETURN sum(relCount) AS totalCount;
 
 
-LOAD CSV WITH HEADERS FROM 'file:///GenshinImpact/relations/character2element.csv' AS row
+LOAD CSV WITH HEADERS FROM 'file:///graph/character2element.csv' AS row
 CALL {
     WITH row
     MATCH (ch:Character {ID: row.START_ID})
@@ -55,7 +57,7 @@ CALL {
 }
 RETURN sum(relCount) AS totalCount;
 
-LOAD CSV WITH HEADERS FROM 'file:///GenshinImpact/relations/character2material.csv' AS row
+LOAD CSV WITH HEADERS FROM 'file:///graph/character2material.csv' AS row
 CALL {
     WITH row
     MATCH (ch:Character {ID: row.START_ID})
@@ -65,7 +67,7 @@ CALL {
 }
 RETURN sum(relCount) AS totalCount;
 
-LOAD CSV WITH HEADERS FROM 'file:///GenshinImpact/relations/character2weapontype.csv' AS row
+LOAD CSV WITH HEADERS FROM 'file:///graph/character2weapontype.csv' AS row
 CALL {
     WITH row
     MATCH (ch:Character {ID: row.START_ID})
@@ -75,7 +77,7 @@ CALL {
 }
 RETURN sum(relCount) AS totalCount;
 
-LOAD CSV WITH HEADERS FROM 'file:///GenshinImpact/relations/element2element.csv' AS row
+LOAD CSV WITH HEADERS FROM 'file:///graph/element2element.csv' AS row
 CALL {
     WITH row
     MATCH (e1:Element {ID: row.START_ID})
@@ -85,7 +87,7 @@ CALL {
 }
 RETURN sum(relCount) AS totalCount;
 
-LOAD CSV WITH HEADERS FROM 'file:///GenshinImpact/relations/material2material.csv' AS row
+LOAD CSV WITH HEADERS FROM 'file:///graph/material2material.csv' AS row
 CALL {
     WITH row
     MATCH (m1:Material {ID: row.START_ID})
@@ -95,7 +97,7 @@ CALL {
 }
 RETURN sum(relCount) AS totalCount;
 
-LOAD CSV WITH HEADERS FROM 'file:///GenshinImpact/relations/weapon2material.csv' AS row
+LOAD CSV WITH HEADERS FROM 'file:///graph/weapon2material.csv' AS row
 CALL {
     WITH row
     MATCH (w:Weapon {ID: row.START_ID})
@@ -105,12 +107,23 @@ CALL {
 }
 RETURN sum(relCount) AS totalCount;
 
-LOAD CSV WITH HEADERS FROM 'file:///GenshinImpact/relations/weapon2weapontype.csv' AS row
+LOAD CSV WITH HEADERS FROM 'file:///graph/weapon2weapontype.csv' AS row
 CALL {
     WITH row
     MATCH (w:Weapon {ID: row.START_ID})
     MATCH (wt:WeaponType {ID: row.END_ID})
     MERGE (w)-[rel:属于]->(wt)
+    RETURN count(rel) AS relCount
+}
+RETURN sum(relCount) AS totalCount;
+
+LOAD CSV WITH HEADERS FROM 'file:///graph/character2character.csv' AS row
+CALL {
+    WITH row
+    MATCH (ch:Character {ID: row.START_ID})
+    MATCH (c:Character {ID: row.END_ID})
+MERGE (ch)-[rel:关联]->(c) 
+    ON CREATE SET rel.name = row.type  // 设置关系的属性
     RETURN count(rel) AS relCount
 }
 RETURN sum(relCount) AS totalCount;

@@ -19,7 +19,7 @@ def getEntityID(entity, query):
 entities = ['character', 'country', 'material', 'weapon', 'element', 'weapontype']
 results = dict()
 for entity in entities:
-    file = open(f"D:\Git\KG_project\crawl\my_data\{entity}.json", encoding='utf-8')
+    file = open(f"D:\Git\KG_project\my_data\{entity}.json", encoding='utf-8')
     result = {}
     count = 0
     for line in file:
@@ -111,7 +111,8 @@ with open('D:\Git\KG_project\crawl\my_data\character2element.csv', 'w', encoding
                 #print(data)
                 csv_writer.writerows(data)
 print('character2element finish!')
-
+'''
+'''
 """元素与元素"""
 headers = ['END_ID', 'type', 'START_ID']
 with open('D:\Git\KG_project\crawl\my_data\element2element.csv', 'w', encoding='utf-8-sig', newline="") as f:
@@ -127,6 +128,7 @@ with open('D:\Git\KG_project\crawl\my_data\element2element.csv', 'w', encoding='
                 #print(data)
                 csv_writer.writerows(data)
 print('element2element.csv finish!')
+'''
 '''
 import re
 """角色与素材"""
@@ -146,6 +148,7 @@ with open('D:\Git\KG_project\crawl\my_data\character2material.csv', 'w', encodin
                 csv_writer.writerows(data)
 print('character2material.csv finish!')
 '''
+'''
 """武器与素材"""
 headers = ['END_ID', 'type', 'START_ID']
 with open('D:\Git\KG_project\crawl\my_data\weapon2material.csv', 'w', encoding='utf-8-sig', newline="") as f:
@@ -162,10 +165,10 @@ with open('D:\Git\KG_project\crawl\my_data\weapon2material.csv', 'w', encoding='
                 csv_writer.writerows(data)
 print('weapon2material.csv finish!')
 '''
-'''
+
 """素材与素材"""
 headers = ['END_ID', 'type', 'START_ID']
-with open('D:\Git\KG_project\crawl\my_data\material2material.csv', 'w', encoding='utf-8-sig', newline="") as f:
+with open('D:\Git\KG_project\my_data\material2material.csv', 'w', encoding='utf-8-sig', newline="") as f:
     csv_writer = csv.writer(f)
     csv_writer.writerow(headers)
     for mId in results['material'].keys():
@@ -174,14 +177,15 @@ with open('D:\Git\KG_project\crawl\my_data\material2material.csv', 'w', encoding
         for endId in results['material'].keys():
             item = results['material'][endId]['同类素材']
             data = []
-            if mname in item:
-                data = [[startId, '同类素材', 'm'+str(endId)]]
-                #print(data)
-            if '系列素材' in results['material'][endId].keys():
-                if mname in results['material'][endId]['系列素材']:
-                    data.append(['m'+str(endId), '系列素材', startId])
+            if mId!=endId:
+                if mname in item :
+                    data = [[startId, '同类素材', 'm'+str(endId)]]
+                    #print(data)
+                if '系列素材' in results['material'][endId].keys():
+                    if mname in results['material'][endId]['系列素材']:
+                        data.append(['m'+str(endId), '系列素材', startId])
             if len(data)>0:
                 csv_writer.writerows(data)
 print('material2material.csv finish!')
-'''
+
 
