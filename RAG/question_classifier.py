@@ -6,7 +6,7 @@
 
 import os
 # import jieba
-# import ahocorasick
+import ahocorasick
 import re
 # from transformers import AutoTokenizer, AutoModelForCausalLM
 from sentence_transformers import SentenceTransformer,models
@@ -29,10 +29,9 @@ class QuestionClassifier:
         self.material_wds= [i.strip() for i in open(self.material_path) if i.strip()]
         self.country_wds= [i.strip() for i in open(self.country_path) if i.strip()]
         self.region_words = set(self.character_wds + self.element_wds + self.weapon_wds + self.weapontypes_wds + self.material_wds + self.country_wds)
-        # self.region_tree = self.build_actree(list(self.region_words))
+        self.region_tree = self.build_actree(list(self.region_words))
         # 构建词典
         self.wdtype_dict = self.build_wdtype_dict()
-       
 
         # 问句疑问词
         self.grow_qwds = ['培养', '升级']
@@ -41,12 +40,12 @@ class QuestionClassifier:
         print('model init finished ......')
         return
     '''构造actree，加速过滤'''
-    # def build_actree(self, wordlist):
-    #     actree = ahocorasick.Automaton()
-    #     for index, word in enumerate(wordlist):
-    #         actree.add_word(word, (index, word))
-    #     actree.make_automaton()
-    #     return actree
+    def build_actree(self, wordlist):
+        actree = ahocorasick.Automaton()
+        for index, word in enumerate(wordlist):
+            actree.add_word(word, (index, word))
+        actree.make_automaton()
+        return actree
     '''构造词对应的类型'''
     def build_wdtype_dict(self):
         wd_dict = dict()
@@ -120,17 +119,17 @@ class QuestionClassifier:
             question_type = '3'
             question_types.append(question_type)
         # 材料关系
-        if self.check_words(self.relation_qwds, question) and ('weapon' in types):
+        if self.check_words(self.relation_qwds, question) and ('material' in types):
             question_type = '4'
             question_types.append(question_type)
         if question_types == [] and 'character' in types:
             question_types = ['5']
-        if question_types == [] and 'weapon' in types:
-            question_types = ['6']
+        # if question_types == [] and 'weapon' in types:
+        #     question_types = ['6']
 
         # 将多个分类结果进行合并处理，组装成一个字典
         data['question_types'] = question_types
-
+        print(data)
         return data
 
     # def get_embedding(word):
@@ -155,27 +154,30 @@ class QuestionClassifier:
         # print(similarity)
 
         # 设置相似度阈值
-        threshold = 0.7
-        if similarity>0.7:
+        threshold = 0.55
+        if similarity>0.55:
             print(similarity)
             print(similarity.item())
         return similarity.item() > threshold
     def check(self, question):
         region_wds = []
         # self.region_words
-        for i in self.region_words:
-            # wd = i[1][1]
+        for i in self.region_tree.iter(question):
+            wd = i[1][1]
+            print(wd)
+            region_wds.append(wd)
+        # for i in self.region_words:
             # print(self.region_words)
             # print(question)
-            if self.has_overlap_bert(question,i):
-                region_wds.append(i)
-        # stop_wds = []
-        # for wd1 in region_wds:
-        #     for wd2 in region_wds:
-        #         if wd1 in wd2 and wd1 != wd2:
-        #             stop_wds.append(wd1)
-        # final_wds = [i for i in region_wds if i not in stop_wds]
-        final_dict = {i:self.wdtype_dict.get(i) for i in region_wds}
+            # if self.has_overlap_bert(question,i):
+                # region_wds.append(i)
+        stop_wds = []
+        for wd1 in region_wds:
+            for wd2 in region_wds:
+                if wd1 in wd2 and wd1 != wd2:
+                    stop_wds.append(wd1)
+        final_wds = [i for i in region_wds if i not in stop_wds]
+        final_dict = {i:self.wdtype_dict.get(i) for i in final_wds}
         return final_dict
 if __name__ == '__main__':
     handler = QuestionClassifier()

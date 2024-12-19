@@ -9,16 +9,16 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 entity_parser = QuestionClassifier()
 username = "neo4j"   
 password = "yzm696969"         
-url = "bolt://10.230.32.45:7687"
+url = "bolt://10.222.145.115:7687"
 database = "neo4j" 
 # kg = Graph(url=url, username=username, password=password, database='neo4j')
-kg = Graph(host="10.230.32.45",  # neo4j 搭载服务器的ip地址，ifconfig可获取到
+kg = Graph(host="10.222.145.115",  # neo4j 搭载服务器的ip地址，ifconfig可获取到
             # http_port=7687,  # neo4j 服务器监听的端口号
             user="neo4j",  # 数据库user name，如果没有更改过，应该是neo4j
             password="yzm696969")
 # kg.query(query,parameters)
 # model = ModelAPI(MODEL_URL="http://你的IP:3001/generate")
-model_path ="/home/zhimanyue/sftpFolder/KG_project/RAG/internlm2_5-1_8b"
+model_path ="/home/zhimanyue/sftpFolder/KG_project/RAG/internlm2_5-1_8b-chat"
 tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True, device_map='cuda:0')
 model = AutoModelForCausalLM.from_pretrained(model_path, trust_remote_code=True,torch_dtype=torch.bfloat16, device_map='cuda:0')
 entity_parser = QuestionClassifier()
@@ -50,7 +50,10 @@ class KGRAG():
             'range':"范围",
             'typeName':"类型名称",
             "reaction":"反应",
-            "resonance":'原理'
+            "resonance":'原理',
+            'relatedFood':"相关食物",
+            'source':"材料来源",
+            'type':"材料类型"
         }
         self.entity_rel_dict = {
             "character":["name", 'gender','constellation','intro','specialCuisine','pool','tag','ID','equipDate','title','rarity','desc'],
@@ -58,7 +61,7 @@ class KGRAG():
             "country":[ "name",'desc','background','eng_name'],
             "weapontypes":["name"],
             "element":["name","reaction","resonance"],
-            "material":["name"]
+            "material":["name",'relatedFood','source','type','rarity']
         }
         return
 
@@ -69,7 +72,7 @@ class KGRAG():
         cate = [self.cn_dict.get(i) for i in self.entity_rel_dict.get(entity_type)]
         prompt = "请判定问题：{query}所提及的是{entity}的哪几个信息，请从{cate}中进行选择，并以列表形式返回。".format(query=query, entity=entity, cate=cate)
         answer, history = model.chat(query=prompt, history=[],tokenizer=tokenizer)
-        cls_rel = set([i for i in re.split(r"[\[。、, ;'\]]", answer)]).intersection(set(cate))
+        cls_rel = set([i for i in re.split(r"[\[。、, ;'\]]", answer) if i.strip()]).intersection(set(cate))
         print([prompt, answer, cls_rel])
         return cls_rel
 
@@ -83,6 +86,7 @@ class KGRAG():
             "material":"Material"
         }
         # "MATCH p=(m:Disease)-[r*..2]-(n) where m.name = '耳聋' return p "
+        # 遍历所有depth=1的相关节点，得到三元组集合
         sql = "MATCH p=(m:{entity_type})-[r*..{depth}]-(n) where m.name = '{entity_name}' return p".format(depth=depth, entity_type=entity_dict.get(entity_type), entity_name=entity_name)
         print(sql)
         ress = kg.query(sql).data()
@@ -94,8 +98,9 @@ class KGRAG():
             for node in nodes:
                 node_name = node["name"]
                 for k,v in node.items():
-                    # print(v)
+                    
                     if v == node_name:
+                        print(v)
                         continue
                     if self.cn_dict[k] not in cls_rel:
                         continue
@@ -119,8 +124,8 @@ class KGRAG():
 
     def chat(self, query):
         print("step1: linking entity.....")
-        # entity_dict = self.entity_linking(query)
-        entity_dict={'迪卢克·莱艮芬德（Diluc Ragnvindr）': ['character']}
+        entity_dict = self.entity_linking(query)
+        # entity_dict={'迪卢克·莱艮芬德（Diluc Ragnvindr）': ['character']}
         depth = 1
         facts = list()
         answer = ""
